@@ -265,6 +265,9 @@ void loop() {
 }
 ```
 
+
+
+
 **Wiring note:** For direct UNO-to-UNO hardware UART:
 
 * Connect TX of Board A → RX of Board B (Pin 1 → Pin 0)
@@ -273,6 +276,39 @@ void loop() {
   **Warning:** Hardware Serial is shared with USB; opening Serial Monitor may interfere. Use `SoftwareSerial` for development while using Serial Monitor.
 
 ---
+
+
+
+```cpp
+#include <DHT.h>
+#define DHTPIN 2
+#define DHTTYPE DHT22  
+DHT dht(DHTPIN, DHTTYPE);
+
+void setup() {
+  Serial.begin(9600);
+  dht.begin();
+  Serial.println("Weather Station Initialized");
+}
+
+void loop() {
+  float temperature = dht.readTemperature(false);
+  float humidity = dht.readHumidity();
+
+  if (!isnan(temperature) && !isnan(humidity)) {
+    Serial.print("Temperature: ");
+    Serial.print(temperature);
+    Serial.print(" °C, Humidity: ");
+    Serial.print(humidity);
+    Serial.println("%");
+  } else {
+    Serial.println("Failed to read from DHT sensor!");
+  }
+
+  delay(1000);  
+}
+```
+
 
 ## Images / Wiring Diagrams
 
