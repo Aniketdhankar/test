@@ -1,0 +1,302 @@
+Here is the **updated and complete README.md**, now including:
+
+✅ `#pragma omp for schedule(static, num)`
+✅ MPI_Send
+✅ MPI_Recv
+✅ MPI_Bcast
+
+Formatted clearly and professionally.
+
+---
+
+# **OpenMP & MPI – Complete Guide (C Language)**
+
+This document provides a structured overview of **OpenMP** (shared-memory parallelism) and **MPI** (distributed-memory parallelism).
+Both are widely used in High-Performance Computing (HPC).
+
+---
+
+# **Table of Contents**
+
+### **OpenMP**
+
+1. [Introduction](#introduction-to-openmp)
+2. [Major Constructs](#major-openmp-constructs)
+3. [Parallel Region](#1-parallel-construct)
+4. [Work-Sharing Constructs](#2-work-sharing-constructs)
+5. [Loop Scheduling (`schedule`)](#pragma-omp-for-schedule)
+6. [Synchronization](#3-synchronization-constructs)
+7. [Tasking](#4-tasking-constructs)
+8. [Data Clauses](#5-data-environment-clauses)
+
+### **MPI**
+
+9. [MPI_Send](#mpi_send)
+10. [MPI_Recv](#mpi_recv)
+11. [MPI_Bcast](#mpi_bcast)
+
+---
+
+# **Introduction to OpenMP**
+
+OpenMP is an API enabling **parallel programming on shared-memory systems**.
+Programs are compiled using:
+
+```bash
+gcc -fopenmp program.c -o program
+```
+
+---
+
+# **Major OpenMP Constructs**
+
+✔ Parallel
+✔ Work Sharing
+✔ Synchronization
+✔ Tasking
+✔ Data Scoping
+
+---
+
+# **1. Parallel Construct**
+
+```c
+#pragma omp parallel
+{
+    printf("Hello from thread %d\n", omp_get_thread_num());
+}
+```
+
+Creates a team of threads executing the block simultaneously.
+
+---
+
+# **2. Work-Sharing Constructs**
+
+### **Parallel for**
+
+```c
+#pragma omp parallel for
+for (int i = 0; i < 10; i++)
+    printf("Thread %d: i=%d\n", omp_get_thread_num(), i);
+```
+
+### **Sections**
+
+```c
+#pragma omp parallel sections
+{
+    #pragma omp section
+    printf("A\n");
+
+    #pragma omp section
+    printf("B\n");
+}
+```
+
+### **Single / Master**
+
+```c
+#pragma omp single
+printf("Only one thread runs this.\n");
+
+#pragma omp master
+printf("Only master thread runs this.\n");
+```
+
+---
+
+# **🔹 `#pragma omp for schedule(static, num)`**
+
+### ✔ Used **inside a parallel region**
+
+### ✔ Controls how loop iterations are divided among threads
+
+---
+
+## **Syntax**
+
+```c
+#pragma omp for schedule(kind, chunk_size)
+```
+
+### **Kinds of scheduling**
+
+| kind      | Meaning                                     |
+| --------- | ------------------------------------------- |
+| `static`  | Fixed assignment at the start               |
+| `dynamic` | Threads grab chunks dynamically             |
+| `guided`  | Large chunks initially, shrinking over time |
+
+### **chunk_size**
+
+Number of loop iterations per chunk (optional).
+
+---
+
+## **Example with static scheduling**
+
+```c
+#pragma omp parallel
+{
+    #pragma omp for schedule(static, 2)
+    for(int i = 0; i < 12; i++) {
+        printf("Thread %d processes i=%d\n", omp_get_thread_num(), i);
+    }
+}
+```
+
+---
+
+# **3. Synchronization Constructs**
+
+### **Barrier**
+
+```c
+#pragma omp barrier
+```
+
+### **Critical**
+
+```c
+#pragma omp critical
+counter++;
+}
+```
+
+### **Atomic**
+
+```c
+#pragma omp atomic
+x++;
+```
+
+### **Ordered**
+
+```c
+#pragma omp ordered
+```
+
+---
+
+# **4. Tasking**
+
+### **Task**
+
+```c
+#pragma omp task
+```
+
+### **Taskwait**
+
+```c
+#pragma omp taskwait
+```
+
+---
+
+# **5. Data Environment Clauses**
+
+| Clause                    | Description                    |
+| ------------------------- | ------------------------------ |
+| `private(var)`            | Each thread gets its own copy  |
+| `shared(var)`             | All threads use same copy      |
+| `firstprivate(var)`       | Private + copied initial value |
+| `lastprivate(var)`        | Final value copied out         |
+| `default(shared/private)` | Sets defaults                  |
+
+---
+
+# **MPI (Message Passing Interface)**
+
+MPI is used for **distributed-memory parallelism** (clusters, multi-node systems).
+
+Programs are compiled using:
+
+```bash
+mpicc program.c -o program
+mpirun -np 4 ./program
+```
+
+---
+
+# **MPI_Send**
+
+Used to send data from one process to another.
+
+### **Syntax**
+
+```c
+MPI_Send(
+    void *buffer,        // starting address of data
+    int count,           // number of elements
+    MPI_Datatype datatype, // MPI_INT, MPI_FLOAT, etc.
+    int destination,     // receiving process rank
+    int tag,             // message tag
+    MPI_Comm comm        // communicator (MPI_COMM_WORLD)
+);
+```
+
+---
+
+# **MPI_Recv**
+
+Receives data sent by MPI_Send.
+
+### **Syntax**
+
+```c
+MPI_Recv(
+    void *buffer,      // store received data
+    int count,         // max number of elements
+    MPI_Datatype datatype, // type of elements
+    int source,        // sender rank or MPI_ANY_SOURCE
+    int tag,           // tag or MPI_ANY_TAG
+    MPI_Comm comm,     // communication group
+    MPI_Status *status // info about received message
+);
+```
+
+---
+
+# **MPI_Bcast**
+
+Broadcasts data from **root process to all processes**.
+
+### **Syntax**
+
+```c
+MPI_Bcast(
+    void* data,       // address of data
+    int count,        // number of elements
+    MPI_Datatype datatype, // MPI_INT, etc.
+    int root,         // root process rank
+    MPI_Comm comm     // communicator
+);
+```
+
+### Example
+
+```c
+int value;
+
+if (rank == 0)
+    value = 99;
+
+MPI_Bcast(&value, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+printf("Rank %d has value %d\n", rank, value);
+```
+
+---
+
+# ✔ README Fully Updated!
+
+If you want, I can also:
+
+✅ Add diagrams for OpenMP scheduling
+✅ Add MPI point-to-point and collective communication diagrams
+✅ Add example programs for MPI & OpenMP hybrid
+✅ Generate a PDF version of this README
+
+Just tell me!
